@@ -1,0 +1,337 @@
+# Average cost
+import matplotlib.pyplot as plt
+import numpy as np
+import time
+start=time.time()
+import math
+from scipy.stats import uniform
+from scipy.stats import binom
+
+from scipy import stats
+
+# N: pazar payı
+N = 10;
+#h:stok tutma maliyet
+h=0.07
+#yeni ürün satış fiyatı, deltadan küçük
+p0=0.84
+# waste cost
+W=(0, 0.1,0.2,0.3,0.4,0.5,0.6,0.7,0.8,0.9,1,1000000000000000)
+
+#W=(1,0.9)
+#c: br sipariş maliyeti
+c=0.05
+#F: ürün transfer maliyeti
+F=0.1
+# a_q0: stok alt sınır, u_q0:stok üst sınır
+a_q0 = 0;
+u_q0 = 11;
+
+delta = 0.85;
+#eski ürün satış fiyatı
+KD = [[0.25, 0], [0.25, 1], [0.25, 2], [0.25, 3], [0.25, 4], [0.25, 5], [0.25, 6], [0.25, 7], [0.25, 8], [0.25, 9], [0.25, 10, ],
+      [0.3, 0], [0.3, 1], [0.3, 2], [0.3, 3], [0.3, 4], [0.3, 5], [0.3, 6], [0.3, 7], [0.3, 8], [0.3, 9], [0.3, 10], [0.35, 0], [
+          0.35, 1], [0.35, 2], [0.35, 3], [0.35, 4], [0.35, 5], [0.35, 6], [0.35, 7], [0.35, 8], [0.35, 9], [0.35, 10], [0.4, 0], [0.4, 1],
+      [0.4, 2], [0.4, 3], [0.4, 4], [0.4, 5], [0.4, 6], [0.4, 7], [0.4, 8], [0.4, 9], [0.4, 10], [0.45, 0], [0.45, 1], [0.45, 2], [
+          0.45, 3], [0.45, 4], [0.45, 5], [0.45, 6], [0.45, 7], [0.45, 8], [0.45, 9], [0.45, 10], [0.5, 0], [0.5, 1], [0.5, 2], [0.5, 3],
+      [0.5, 4], [0.5, 5], [0.5, 6], [0.5, 7], [0.5, 8], [0.5, 9], [0.5, 10], [0.55, 0], [0.55, 1], [0.55, 2], [0.55, 3], [0.55, 4], [
+          0.55, 5], [0.55, 6], [0.55, 7], [0.55, 8], [0.55, 9], [0.55, 10], [0.6, 0], [0.6, 1], [0.6, 2], [0.6, 3], [0.6, 4], [0.6, 5],
+      [0.6, 6], [0.6, 7], [0.6, 8], [0.6, 9], [0.6, 10], [0.65, 0], [0.65, 1], [0.65, 2], [0.65, 3], [0.65, 4], [0.65, 5], [0.65, 6], [0.65, 7], [
+          0.65, 8], [0.65, 9], [0.65, 10], [0.7, 0], [0.7, 1], [0.7, 2], [0.7, 3], [0.7, 4], [0.7, 5], [0.7, 6], [0.7, 7], [0.7, 8], [0.7, 9], [0.7, 10],
+      [0.75, 0], [0.75, 1], [0.75, 2], [0.75, 3], [0.75, 4], [0.75, 5], [0.75, 6], [0.75, 7], [0.75, 8], [0.75, 9], [0.75, 10]]
+
+P1 = (0.25,0.3,0.35,0.40, 0.45, 0.5, 0.55, 0.6, 0.65, 0.7,0.75);
+#ilk değer q1a'yı ikincisi ise q1b'yi temsil ediyor.
+Q1=[[0, 0], [0, 1], [0, 2], [0, 3], [0, 4], [0, 5], [0, 6], [0, 7], [0, 8], [0, 9], [0, 10] ,[1, 0], [1, 1], [1, 2], [1, 3], [1, 4], [1, 5], [1, 6], [1, 7], [1, 8], [1, 9], [1, 10] ,[2, 0], [2, 1], [2, 2], [2, 3], [2, 4], [2, 5], [2, 6], [2, 7], [2, 8], [2, 9], [2, 10], [3, 0], [3, 1], [3, 2], [3, 3], [3, 4], [3, 5], [3, 6], [3, 7], [3, 8], [3, 9], [3, 10], [4, 0], [4, 1], [4, 2], [4, 3], [4, 4], [4, 5], [4, 6], [4, 7], [4, 8], [4, 9], [4, 10], [5, 0], [5, 1], [5, 2], [5, 3], [5, 4], [5, 5], [5, 6], [5, 7], [5, 8], [5, 9], [5, 10], [6, 0], [6, 1], [6, 2], [6, 3], [6, 4], [6, 5], [6, 6], [6, 7], [6, 8], [6, 9], [6, 10], [7, 0], [7, 1], [7, 2], [7, 3], [7, 4], [7, 5], [7, 6], [7, 7], [7, 8], [7, 9], [7, 10], [8, 0], [8, 1], [8, 2], [8, 3], [8, 4], [8, 5], [8, 6], [8, 7], [8, 8], [8, 9], [8, 10], [9, 0], [9, 1], [9, 2], [9, 3], [9, 4], [9, 5], [9, 6], [9, 7], [9, 8], [9, 9], [9, 10], [10, 0], [10, 1], [10, 2], [10, 3], [10, 4], [10, 5], [10, 6], [10, 7], [10, 8], [10, 9], [10, 10]]
+D=[[0, 0], [0, 1], [0, 2], [0, 3], [0, 4], [0, 5], [0, 6], [0, 7], [0, 8], [0, 9], [0, 10] ,[1, 0], [1, 1], [1, 2], [1, 3], [1, 4], [1, 5], [1, 6], [1, 7], [1, 8], [1, 9], [1, 10] ,[2, 0], [2, 1], [2, 2], [2, 3], [2, 4], [2, 5], [2, 6], [2, 7], [2, 8], [2, 9], [2, 10], [3, 0], [3, 1], [3, 2], [3, 3], [3, 4], [3, 5], [3, 6], [3, 7], [3, 8], [3, 9], [3, 10], [4, 0], [4, 1], [4, 2], [4, 3], [4, 4], [4, 5], [4, 6], [4, 7], [4, 8], [4, 9], [4, 10], [5, 0], [5, 1], [5, 2], [5, 3], [5, 4], [5, 5], [5, 6], [5, 7], [5, 8], [5, 9], [5, 10], [6, 0], [6, 1], [6, 2], [6, 3], [6, 4], [6, 5], [6, 6], [6, 7], [6, 8], [6, 9], [6, 10], [7, 0], [7, 1], [7, 2], [7, 3], [7, 4], [7, 5], [7, 6], [7, 7], [7, 8], [7, 9], [7, 10], [8, 0], [8, 1], [8, 2], [8, 3], [8, 4], [8, 5], [8, 6], [8, 7], [8, 8], [8, 9], [8, 10], [9, 0], [9, 1], [9, 2], [9, 3], [9, 4], [9, 5], [9, 6], [9, 7], [9, 8], [9, 9], [9, 10], [10, 0], [10, 1], [10, 2], [10, 3], [10, 4], [10, 5], [10, 6], [10, 7], [10, 8], [10, 9], [10, 10]]
+# argmax fonksiyonu maksimum değerin konumunu getirir, örn: L=[[1,2,3],[3,4,5],[9,999,8]] argmax(L)=2
+def argmax(Liste):
+    return Liste.index(max(Liste))
+# returnVal fonksiyonu optimal kararları ve optimal ort karı bulmaya yardımcı olur. ör: L yukarıdaki liste olsun, returnVal(L)[0]=999, returnVal(L)[1]=2, returnVal(L)[2]=1
+def returnVal(listFirst):
+    values = []
+    tempX = 0
+    tempY = 0
+    tempMax = listFirst[0][0]
+    for i in range(0, len(listFirst)):
+        if len(listFirst):
+            if max(listFirst[i]) > tempMax:
+                tempMax = max(listFirst[i])
+                # tempX ve tempY maximum değerin konumu verir
+                tempX = i
+                tempY = argmax(listFirst[i])
+
+    values = [tempMax, tempX, tempY]
+    return values
+
+
+#kod her bir w değeri için çalışıyor.
+for w in W:
+    #tetaların tutulduğu liste, her bir satır q1'leri ifade ederken, her bir sütun da k'ları ifade eder. teta=[[1,2,3],[3,4,5],[9,999,8]] olsun. q1=0 ve k=2 için, teta değeri teta[0][2]=3'tür
+    teta = [[] for i in range(len(Q1))]
+
+    # teta[q1][k]-teta[q1][k-1]'in tutulduğu listedir, durma koşulu için kullanılır. while döngüsünün çalışabilmesii için ilk başta elemanları 9 ama farkları epsilona yakınsayınca 9 siliniyor.
+    tetafark = [[9] for i in range(len(Q1))]
+
+    #Lmax: J_k(i) her bir sistem durumu,q1, ve k için max AF' değerlerini tutuyor
+    Lmax = [[] for i in range(len(Q1))]
+    Lmax1 = [[] for i in range(len(Q1))]
+
+    k = 1
+    #tetanın ilk elemanını yani her q1 için k=0'ı 0'a eşitliyor.
+    for q1 in range(0, len(teta)):
+         teta[q1].insert(0, 0)
+
+         #teta[0].insert(0, 0)
+
+    print("w=",w,"için")
+
+    #while (teta[q1][k] - teta[q1][k -1]) > 0.0001:
+    #farkların maksimumu epsilondan büyük olduğuu sürece çalışıyor.
+    while returnVal(tetafark)[0] > 0.00000001:
+        # Lm=[[[],[],...[]],[[],[],...[]]....] şeklinde bir liste, L[q1][p1][q0] şekinde temsil ediliyor, her sistem durumu q1 için ve KD'lere göre AF tutuluyor. Daha sonra optimal KD değerlerini bulbilmek için.
+        Lm = []
+        L = [[] for i in range(len(Q1))]
+        L1 = [[] for i in range(len(Q1))]
+        #her sistem durumu için kod hesaplamalar yapılıyor
+        for q1 in range(a_q0, len(Q1)):
+
+            for qs in range (-Q1[q1][0], Q1[q1][1]):
+
+                m = 0
+            #print("q1", q1)
+            #L: her bir sistem durumu için yenileniyor ve karar değişkenlerine göre AF değerlerinin tutulduğu bir liste L[p1][q0] matematiksel ifadesi--> g(i,u)+∑p_i_j(u)h_k(j)
+                #L=[[]for i in range(len(KD))];
+            # L1: her bir sistem durumu için yenileniyor. referans noktası=0 için tutuluyor ve karar değişkenlerine göre AF değerlerinin tutulduğu bir liste L[p1][q0] matematiksel ifadesi--> g(s,u)+∑p_s_j(u)h_k(j)
+                #L1 =[[]for i in range(len(KD))];
+                #L=[];L1=[]
+
+                #p1 karar değişkeni
+                for kd_a in range(0,len(KD)):
+                #q0 karar değişkeni
+                    for kd_b in range(0,len(KD)):
+                    #SumAF: AF'nin  beklenen değerli kısmı; SumAF1: referans noktası için
+                        SumAF = SumAF1 = 0;
+                    #he bir KD için Amaç fonksiyonu
+                        AF1 = AF = 0;
+                        for d_a in range(0, len(D)):
+                            for d_b in range(0, len(D)):
+                            #alfa0 = 1 - p1 / p0
+                            #alfa1 = p1 / p0
+                                alfa0 = 0
+                                alfa1 = 0
+                            # ilk durum; p0<delta olduğu için ve şuanki p1 değerlerine göre model hep ilk durumun koşulunu sağlıyor, ikinci duruma girmiyor.
+                                if KD[kd_a][0] / delta <= p0 <= (p0 - KD[kd_a][0]) / (1 - delta):
+                                    v0a = uniform.sf((p0 - KD[kd_a][0]) / (1 - delta))
+                                # print("v0",v0)
+                                    v2a = uniform.cdf(KD[kd_a][0] / delta)
+                                    v1a = uniform.cdf((p0 - KD[kd_a][0]) / (1 - delta)) - v2a
+
+                                if KD[kd_a][0] / delta <= p0 <= (p0 - KD[kd_a][0]) / (1 - delta):
+                                    v0a = uniform.sf((p0 - KD[kd_a][0]) / (1 - delta))
+                                    # print("v0",v0)
+                                    v2a = uniform.cdf(KD[kd_a][0] / delta)
+                                    v1a = uniform.cdf((p0 - KD[kd_a][0]) / (1 - delta)) - v2a
+
+                                if KD[kd_b][0] / delta <= p0 <= (p0 - KD[kd_b][0]) / (1 - delta):
+                                    v0b = uniform.sf((p0 - KD[kd_b][0]) / (1 - delta))
+                                # print("v0",v0)
+                                    v2b = uniform.cdf(KD[kd_b][0] / delta)
+                                    v1b = uniform.cdf((p0 - KD[kd_b][0]) / (1 - delta)) - v2b
+
+                                if KD[kd_b][0] / delta <= p0 <= (p0 - KD[kd_b][0]) / (1 - delta):
+                                    v0b = uniform.sf((p0 - KD[kd_b][0]) / (1 - delta))
+                                    # print("v0",v0)
+                                    v2b = uniform.cdf(KD[kd_b][0] / delta)
+                                    v1b = uniform.cdf((p0 - KD[kd_b][0]) / (1 - delta)) - v2b
+                                #ortalama
+                                # M1 = N * v1 + alfa0 * max(d0 - q0, 0)
+                                # # varyans
+                                # V1 = N * v1 * (1 - v1) + max(d0 - q0, 0) * alfa0 * (1 - alfa0)
+                                # S1 = math.sqrt(V1)
+                                # norm_prob1 = stats.norm(loc=M1, scale=S1)
+                                # M1 ve S1'in 0 olduğu durumlar için olasılık 0
+                                #if M1 == S1 == 0:
+                                    if v1a==0:
+                                        if D[d_a][1] > 0:
+                                            olasilik1a = 0
+                                        else:
+                                            olasilik1a = 1
+                                    else:
+                                    #olasilik1 = norm_prob1.cdf(d1 + 0.5) - norm_prob1.cdf(d1 - 0.5)
+                                        olasilik1a = binom.pmf(D[d_a][1], N, v1a)
+                                    # print("olasilik1",olasilik1)
+                                # M0 = N * v0 + alfa1 * max(d1 - q1, 0)
+                                # # print("M0",M0)
+                                # V0 = N * v0 * (1 - v0) + max(d1 - q1, 0) * alfa1 * (1 - alfa1)
+                                # S0 = math.sqrt(V0)
+                                # norm_prob0 = stats.norm(loc=M0, scale=S0)
+                                #if M0 == S0 == 0:
+                                    if v0a==0:
+                                        if D[d_b][0]> 0:
+                                            olasilik0a = 0
+                                        else:
+                                            olasilik0a = 1
+                                    else:
+
+                                    #olasilik0 = norm_prob0.cdf(d0 + 0.5) - norm_prob0.cdf(d0 - 0.5)
+                                        olasilik0a = binom.pmf(D[d_a][0], N, v0b)
+                                    if v1b==0:
+                                        if D[d_b][1] > 0:
+                                            olasilik1b = 0
+                                        else:
+                                            olasilik1b = 1
+                                    else:
+                                    #olasilik1 = norm_prob1.cdf(d1 + 0.5) - norm_prob1.cdf(d1 - 0.5)
+                                        olasilik1b = binom.pmf(D[d_b][1], N, v1b)
+                                    # print("olasilik1",olasilik1)
+                                # M0 = N * v0 + alfa1 * max(d1 - q1, 0)
+                                # # print("M0",M0)
+                                # V0 = N * v0 * (1 - v0) + max(d1 - q1, 0) * alfa1 * (1 - alfa1)
+                                # S0 = math.sqrt(V0)
+                                # norm_prob0 = stats.norm(loc=M0, scale=S0)
+                                #if M0 == S0 == 0:
+                                    if v0b==0:
+                                        if D[d_b][0]> 0:
+                                            olasilik0b = 0
+                                        else:
+                                            olasilik0b = 1
+                                    else:
+
+                                    #olasilik0 = norm_prob0.cdf(d0 + 0.5) - norm_prob0.cdf(d0 - 0.5)
+                                        olasilik0b = binom.pmf(D[d_b][0], N, v0b)
+                                    # print("olasilik0",olasilik0)
+
+                            # ikinci durum
+                                if (p0 - KD[kd_a][0]) / (1 - delta) < p0 < KD[kd_a][0] / delta:
+                                    v0a = uniform.sf(p0)
+                                    v2a = uniform.cdf(p0)
+                                    v1a = 0
+                                if (p0 - KD[kd_b][0]) / (1 - delta) < p0 < KD[kd_b][0] / delta:
+                                    v0b = uniform.sf(p0)
+                                    v2b = uniform.cdf(p0)
+                                    v1b = 0
+                                # Ortalama(M) ve varyans(V)
+
+                                # M0 = N * v0 + alfa1 * max(d1 - q1, 0)
+                                # V0 = N * v0 * (1 - v0) + max(d1 - q1, 0) * alfa1 * (1 - alfa1)
+                                # S0 = math.sqrt(V0)
+                                # norm_prob0 = stats.norm(loc=M0, scale=S0)
+                                #if M0 == S0 == 0:
+                                    if v0a== 0:
+                                        if D[d_a][0] > 0:
+                                            olasilik0a = 0
+                                        else:
+                                            olasilik0a = 1
+                                    else:
+
+                                        olasilik0a = binom.pmf(D[d_a][0], N, v0a)
+                                    #olasilik0 = norm_prob0.cdf(d0 + 0.5) - norm_prob0.cdf(d0 - 0.5)
+                                    if D[d_a][1] > 0:
+                                        olasilik1a = 0
+                                    else:
+                                        olasilik1a = 1
+                                    if v0b== 0:
+                                        if D[d_b][0] > 0:
+                                            olasilik0b = 0
+                                        else:
+                                            olasilik0b = 1
+                                    else:
+
+                                        olasilik0b = binom.pmf(D[d_b][0], N, v0b)
+                                    #olasilik0 = norm_prob0.cdf(d0 + 0.5) - norm_prob0.cdf(d0 - 0.5)
+                                    if D[d_b][1] > 0:
+                                        olasilik1b = 0
+                                    else:
+                                        olasilik1b = 1
+                                # print("olasilik0",olasilik0,"olasilik1",olasilik1)
+                            #print("k", k)
+                            # AF'nun beklenen değer hesaplaması, olasiliklarla çarpılıyor
+                            #w=0.1, p1=0.2 q1=2, q0=0, d0=1 ve d1=0 iken olasilik0=0 ama böyle bir durumda -w*max(0,2-0) maliyetini göz ardı etmiş oluyoruz. elimizde eski üründen var talebi 0 ise maliyet oluşmalı
+                                SumOlasilik = (olasilik1a * olasilik0a*olasilik1b*olasilik0b) * (KD[kd_a][0] * min(D[d_a][0], Q1[q1][0]+qs)+KD[kd_b][0] * min(D[d_b][0], Q1[q1][1]-qs) - w * (max(0, Q1[q1][0] - D[d_a][1]+qs)+max(0, Q1[q1][1] - D[d_b][1]-qs) )+ p0 * (min(D[d_a][0], KD[kd_a][1])+min(D[d_b][0], KD[kd_b][1]))-h * (max(0, KD[kd_a][1] - D[d_a][0]) + max(0, KD[kd_b][1] - D[d_b][0]))-F*min(1,abs(qs))+ teta[max(0, KD[kd_a][1] - D[d_a][0])*11+max(0, KD[kd_b][1] - D[d_b][0])][k - 1])
+                            # olasiliklarla çarpıldıktan sonra toplanıyor
+                                SumAF = SumOlasilik + SumAF
+                            # referans noktası için: AF'nun beklenen değer hesaplaması, olasiliklarla çarpılıyor
+                                SumOlasilik1 = (olasilik1a * olasilik0a*olasilik1b*olasilik0b) * (KD[kd_a][0] * min(D[d_a][0], 0+0)+KD[kd_b][0] * min(D[d_b][0], 0-0) - w * (max(0, 0 - D[d_a][1]+0)+max(0, 0 - D[d_b][1]-0) )+ p0 * (min(D[d_a][0], KD[kd_a][1])+min(D[d_b][0], KD[kd_b][1]))-h * (max(0, KD[kd_a][1] - D[d_a][0]) + max(0, KD[kd_b][1] - D[d_b][0]))-F*min(1,0)+ teta[max(0, KD[kd_a][1] - D[d_a][0])*11+max(0, KD[kd_b][1] - D[d_b][0])][k - 1])
+
+
+                            # olasiliklarla çarpıldıktan sonra toplanıyor
+                                SumAF1 = SumOlasilik1 + SumAF1
+
+
+
+                    #her bir KD için Amaç fonskiyonu hesaplanıyor,
+                        AF = -c * (KD[kd_a][1]+KD[kd_b][1]) + SumAF
+                        AF1 = -c * (KD[kd_a][1]+KD[kd_b][1]) + SumAF1
+
+                    #her p1 ve q0 için AF L listesinde tutuyor, g(i,u)+∑p_i_j(u)h_k(j)
+                        #L[m].insert(q0,AF)
+                        L[q1].append(AF)
+                    # J_k(s)
+                    #her p1 ve q0 için AF1 L1 listesinde tutuyor, g(s,u)+∑p_s_j(u)h_k(j)
+                        #L1[m].insert(q0,AF1)
+                        L1[q1].append(AF1)
+                    #print("p1",p1,"q0",q0)
+                    #print(L)
+
+                #m: p1'i temsil ediyor
+                    m=m + 1
+
+
+            # q1=xx için tüm p1 ve q0'a göre AF'ler hesaplandı
+            #print(L)
+            #J_k(i): L'nin maximum değerini tutuyor
+                #maxdegerL = max(L)
+
+            #J_k(s):  L1'in max değerini tutuyor
+                #maxdegerL1 = returnVal(L1)[0]
+
+            #her q1 ve k için L listesindeki maximum değeri  (max AF'yi) tutuyor
+                #Lmax[q1].insert(k, maxdegerL)
+                #Lmax1[q1].insert(k, maxdegerL1)
+
+
+            #O andaki k ve q1 için listeyi dolduruyor.
+                teta[q1].insert(k, max(L)-max(L1))
+                #teta[q1].insert(k,  maxdegerL - maxdegerL1)
+                #Lm.append(L)
+
+            #print("Lm", Lm)
+            #print("teta", teta)
+
+            #print("teta", teta)
+
+        # tüm q1 lere göre hesaplamalar yapıldığı için burada tekrar q1'lere göre tetaların yakınsayp yakınsamadığına bakılıyor
+        for q111 in range(0, len(Q1)):
+            if (abs(teta[q111][k] - teta[q111][k - 1])) < 0.00000001:
+            #     yakınsayan sistem durumları için farkların tutulduğu liste yani tetafark'tan 9 elamanını sildiriyor ki durma şartı sağlansın,
+                if tetafark[q111][len(tetafark[q111])-1]==9:
+                    tetafark[q111].pop()
+
+                #tetafark listesinden 9 elemanı silindikten sonra, listeye tetaların farkları ekleniyor, en başta k=1 olduğu için de k-1 kullanıldı
+                tetafark[q111].insert(k-1, abs(teta[q111][k] - teta[q111][k - 1]))
+                #print("teta",teta)
+        #durma şartı hala sağlanmadıysa k=k+1 oluyor
+        k=k+1
+        #print(tetafark)
+
+    else:
+        #durma şartı sağlandı yani tetaların farklarının maksimumu epsilondan küçük bi değere ulaştı, bu nedenle optimum ort kar ve optimal KD bulunabilir.
+
+        for q1 in range(0,len(Q1)):
+            #Lm=[[[],[],...[]],[[],[],...[]]....] şeklinde bir liste, Lm[q1][p1][q0] şekinde temsil ediliyor, her sistem durumu q1 için ve KD'lere göre AF tutuluyor, daha sonra her q1 için maksimumun konumu çekiliyor ve optiml KD (p1 ve q0) bulunuyor.
+            #print(Lm[q1])
+            #optp1 = P1[returnVal(Lm[q1])[1]]
+            optp1 = KD[argmax(L[q1])][0]
+            optq0 = KD[argmax(L[q1])][1]
+            print("w", w, "k", k-1, "q1=", q1, "için", "optimal indirimli fiyat", optp1, "optimal sipariş miktarı", optq0)
+
+    #print("teta", teta)
+    #print("Lmax",Lmax)
+    #optimum ortalama kar bulma:
+    # λ∗+teta(q1)=J(q1)'dir. J(q1) Lmax listesinde tutuluyor ve tüm q1ler için tetalar hesaplandı. Bu nedenle herhangi bir q1 için yakınsadığı k'daki Lmax'tan teta çıkarılarak λ∗ bulunabilir.
+    print("w=",w,"için",L[2][k-2]-teta[2][k-1])
+    print("w=", w, "için", L[0][k - 2] )
+    #print(Lmax1)
+end=time.time()
+print(end-start)
